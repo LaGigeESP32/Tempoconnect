@@ -1,0 +1,16 @@
+{
+  "version": "20251110_001",
+  "firmware": {
+    "file": "Tempo.ino.bin",
+    "size": 1125168,
+    "hmac": "ce9d257100dbc54d49e0ad76e3a60475f67ca02c2cd72552836e3ca7c5aaee7d"
+  },
+  "data": [
+    {
+      "file": "data/page.html",
+      "size": 8220,
+      "hmac": "a922c60272c3b1dd15a58964bfbc4b096a2dce6175d3fffbbff809bdfee47823"
+    }
+  ],
+  "signature": "5469003c68eca1319373c15e7618974bd26623b9d78abe141b88a82215c5ef32"
+}

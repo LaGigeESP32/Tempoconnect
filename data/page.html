@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang='fr'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<title>TempoConnect</title><link rel='stylesheet' href='w3.css'><style>
+.circle {width: 40px;height: 40px;margin: 10px;border-radius: 50%;display: inline-block; background-color: green;}
+.BLEU { background-color: blue; }
+.BLANC { background-color: white; }
+.ROUGE { background-color: red; }
+.JAUNE { background-color: yellow; }
+.NUIT { background-color: #191970; }
+.NON_DEFINI { background-color: green; }
+.title {font-size: 0.9em;text-align: center;}
+.title1 {font-size: 1.3em;text-align: center; margin-top: 10px}
+.CLIN {animation: clignoter 0.5s infinite;}
+.container {max-width: 600px; min-width: 350px;text-align: center;}
+@keyframes clignoter {0%, 100% {opacity: 1;}50% {opacity: 0;}}
+.switch {position: relative; display: inline-block; width: 40px; height: 20px;}
+.switch input {opacity: 0; width: 0; height: 0;}
+.slider {position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s;}
+.slider:before {position: absolute; content: ''; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s;}
+input:checked + .slider {background-color: #2196F3;}
+input:checked + .slider:before {transform: translateX(20px);}
+.slider.round {border-radius: 16px;}
+.slider.round:before { border-radius: 50%;}
+</style></head><body><center>
+<div class='w3-center w3-padding-8 title1' style='width:100%;' ><body>Tempo Connect</div>
+<div class='w3-container'><a href='/wifi' class='w3-button w3-light-grey'>Wifi</a> 
+<a href='#' class='w3-button w3-light-grey' onclick='restart()'>Redémarrer</a></div>
+<center><div class='w3-center w3-padding-8 container' style='width:90%; height:50%;'>
+<div class='w3-container'>
+<div class='title1'><span id='webDateTime'>Connexion au TempoConnect...</span></div>
+<p>Synchronisation RTE <span id='WebLastSync'></span></p>
+<p>Dernier client <span id='ClientConnect'>aucun</span></p>
+<div class='w3-row'>
+<div class='w3-col s3 title'>Aujourd'hui</div>
+<div class='w3-col s3 title'>Demain</div>
+<div class='w3-col s3 title'><span id='WebHPHCtext'>--</span></div>
+<div class='w3-col s3 title'>Vigilance</div></div>
+<div class='w3-row'>
+<div class='w3-col s3'><div id='WebJourJ' class='circle CLIN w3-border'></div></div>
+<div class='w3-col s3'><div id='WebJourJ1' class='circle CLIN w3-border'></div></div>
+<div class='w3-col s3'><div id='WebHPHCLed' class='circle CLIN w3-border'></div></div>
+<div class='w3-col s3'><div id='WebVigilance' class='circle CLIN w3-border'></div></div></div>
+<center><div class='w3-center w3-padding-8' style='width:80%; height:50%;'>
+<label for='LumLedJour'>Luminosité jour des Led</label>
+<input type='range' id='LumLedJour' name='LumLedJour' min='1' max='100' value='50' class='w3-input w3-border' onchange="updateVars()">
+<label for='LumLedNuit'>Luminosité nuit des Led</label>
+<input type='range' id='LumLedNuit' name='LumLedNuit' min='1' max='100' value='50' class='w3-input w3-border' onchange="updateVars()">
+<label for='modeLed' style='margin-right: 20px;'>Activer les leds des jours</label><label class='switch'>
+<input type='checkbox' id='modeLed' name='ModeLed' value='1' checked onchange="updateVars()"><span class='slider round'></span></label><br><br>
+<label for='ModeHPHC' style='margin-right: 20px;'>Activer la led HP/HC</label><label class='switch'>
+<input type='checkbox' id='ModeHPHC' name='ModeHPHC' value='1' checked onchange="updateVars()"><span class='slider round'></span></label><br><br>
+<label for='ModeSurveil' style='margin-right: 20px;'>Activer la led de vigilance</label><label class='switch'>
+<input type='checkbox' id='ModeSurveil' name='ModeSurveil' value='1' checked onchange="updateVars()"><span class='slider round'></span></label><br><br>
+<label for='ModeWifiSave' style='margin-right: 20px;'>Activer l'économie d'énergie</label><label class='switch'>
+<input type='checkbox' id='ModeWifiSave' name='ModeWifiSave' value='1' checked onchange="updateVars()"><span class='slider round'></span></label><br><br>
+<label for='sondTemp' style='margin-right: 20px;'>Activer la sonde de température</label><label class='switch'>
+<input type='checkbox' id='sondTemp' name='sondTemp' value='1' checked onchange="updateVars()"><span class='slider round'></span></label><br><br>
+Allumage des leds<select class='w3-select w3-border' name='ModeVeille' id='ModeVeille' onchange="updateVars()">
+<option value='0'"; if (ModeVeille == 0)  selected";  >Oui</option>
+<option value='1'"; if (ModeVeille == 1)  selected";  >Non</option>
+<option value='2'"; if (ModeVeille == 2)  selected";  >Uniquement en saison</option>
+<option value='3'"; if (ModeVeille == 3)  selected";  >Uniquement en jour rouge</option>
+</select>
+Configuration des leds<select class='w3-select w3-border' name='NUM_PIXELS' id='NUM_PIXELS' onchange="updateVars()">
+<option value='3'"; if (NUM_PIXELS == 3)  selected";  >3 leds</option>
+<option value='4'"; if (NUM_PIXELS == 4)  selected";  >4 leds</option>
+</select>
+<br><br></div> 
+<script>
+
+var gateway = `ws://${window.location.hostname}/ws`; 
+
+var websocket; window.addEventListener('load', onLoad);
+
+var outConnect = false;
+
+function onLoad(event) {
+initWebSocket();
+}
+
+function initWebSocket() {
+websocket = new WebSocket(gateway); 
+websocket.onopen = onOpen; 
+websocket.onclose = onClose; 
+websocket.onmessage = onMessage;
+}
+
+function onOpen(event) {
+console.log('Connection opened');
+outConnect = true;
+}
+
+function onClose(event) {
+console.log('Connection closed');
+outConnect = false;
+//setTimeout(initWebSocket, 2000);
+}
+
+
+ function updateVars() { // envoie des données vers l'ESP
+ 
+
+	const lumLedJour = parseInt(document.getElementById("LumLedJour").value);
+    const lumLedNuit = parseInt(document.getElementById("LumLedNuit").value);
+    const modeLed = document.getElementById("modeLed").checked;
+    const ModeHPHC = document.getElementById('ModeHPHC').checked
+    const ModeSurveil = document.getElementById("ModeSurveil").checked;
+	const ModeWifiSave = document.getElementById("ModeWifiSave").checked;
+	const sondTemp = document.getElementById("sondTemp").checked;
+	const ModeVeille = parseInt(document.getElementById("ModeVeille").value);
+	const NUM_PIXELS = parseInt(document.getElementById("NUM_PIXELS").value);
+	
+    websocket.send(JSON.stringify({lumLedJour: lumLedJour, lumLedNuit: lumLedNuit, modeLed: modeLed, ModeHPHC: ModeHPHC, ModeSurveil: ModeSurveil, ModeWifiSave: ModeWifiSave, sondTemp: sondTemp, ModeVeille: ModeVeille, NUM_PIXELS: NUM_PIXELS}));
+    
+	}
+
+function onMessage(event) {
+
+	var data = JSON.parse(event.data);
+	document.getElementById('webDateTime').innerText = data.webDateTime;
+	document.getElementById('WebLastSync').innerText = data.WebLastSync;
+	document.getElementById('WebHPHCtext').innerText = data.WebHPHCtext;
+	document.getElementById('WebJourJ').className = data.WebJourJ;
+	document.getElementById('WebJourJ1').className = data.WebJourJ1;
+	document.getElementById('WebHPHCLed').className = data.WebHPHCLed;
+	document.getElementById('WebVigilance').className = data.WebVigilance;
+	document.getElementById('ClientConnect').innerText = data.ClientConnect;
+	document.getElementById('LumLedJour').value = data.lumLedJour;
+	document.getElementById('LumLedNuit').value = data.lumLedNuit;
+	document.getElementById('modeLed').checked = (data.modeLed == true);
+	document.getElementById('ModeHPHC').checked = (data.ModeHPHC == true);
+	document.getElementById('ModeSurveil').checked = (data.ModeSurveil == true);
+	document.getElementById('ModeWifiSave').checked = (data.ModeWifiSave == true);
+	document.getElementById('ModeVeille').value = data.ModeVeille;
+	document.getElementById('sondTemp').checked = (data.sondTemp == true);
+	document.getElementById('NUM_PIXELS').value = data.NUM_PIXELS;
+	
+}
+
+function reConnect () {
+	if (outConnect === false) {
+		initWebSocket();
+	}
+}
+
+function askrte() {
+fetch('/askRTE');
+}
+
+function restart() 
+{
+fetch('/restart');
+}
+
+setInterval(reConnect, 2000);
+
+</script></body></html>
